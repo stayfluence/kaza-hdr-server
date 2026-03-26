@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: kaza-hdr
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
