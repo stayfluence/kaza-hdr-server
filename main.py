@@ -67,9 +67,11 @@ def mertens_hdr_merge(images: list[np.ndarray]) -> np.ndarray:
             img = cv2.resize(img, (min_w, min_h), interpolation=cv2.INTER_AREA)
         resized.append(img)
 
+    # Align images to compensate hand movement between shots
+    align = cv2.createAlignMTB()
+    align.process(resized, resized)
+
     # Mertens exposure fusion
-    # Higher contrast_weight = sharper details from well-exposed regions
-    # Higher exposure_weight = prefer pixels that are well-exposed (mid-tones)
     merge_mertens = cv2.createMergeMertens(
         contrast_weight=1.0,
         saturation_weight=1.0,
