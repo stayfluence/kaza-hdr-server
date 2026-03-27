@@ -26,7 +26,7 @@ class MergeRequest(BaseModel):
     supabase_service_key: str | None = None
 
 
-MAX_DIMENSION = 1600  # Max width or height to fit in 512MB RAM
+MAX_DIMENSION = 1000  # Max width or height to fit in 512MB RAM with 10 images
 
 
 def download_image(url: str) -> np.ndarray:
@@ -120,9 +120,15 @@ async def merge_hdr(request: MergeRequest):
 
     start_time = time.time()
 
-    # Step 1: Download all images
+    # Step 1: Download all images (process max 5 for memory)
+    urls = request.photo_urls
+    if len(urls) > 5:
+        # Pick evenly spaced images to reduce memory usage
+        step = len(urls) / 5
+        urls = [urls[int(i * step)] for i in range(5)]
+
     images = []
-    for i, url in enumerate(request.photo_urls):
+    for i, url in enumerate(urls):
         try:
             img = download_image(url)
             images.append(img)
