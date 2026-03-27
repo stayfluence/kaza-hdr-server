@@ -26,14 +26,26 @@ class MergeRequest(BaseModel):
     supabase_service_key: str | None = None
 
 
+MAX_DIMENSION = 1600  # Max width or height to fit in 512MB RAM
+
+
 def download_image(url: str) -> np.ndarray:
-    """Download image from URL and return as OpenCV array."""
+    """Download image from URL, decode, and resize to fit memory."""
     response = httpx.get(url, timeout=30)
     response.raise_for_status()
     img_array = np.frombuffer(response.content, dtype=np.uint8)
     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
     if img is None:
         raise ValueError(f"Failed to decode image from {url}")
+
+    # Resize to fit in memory - keep aspect ratio
+    h, w = img.shape[:2]
+    if max(h, w) > MAX_DIMENSION:
+        scale = MAX_DIMENSION / max(h, w)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
     return img
 
 
